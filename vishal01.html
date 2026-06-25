@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CivicConnect - Municipal Grievance Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+
+    <!-- Global Navigation -->
+    <nav class="bg-indigo-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('how-it-works')">
+                    <i class="fa-solid fa-building-shield text-2xl text-amber-400"></i>
+                    <span class="font-bold text-xl tracking-tight">CivicConnect</span>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Language Selector -->
+                    <div class="flex items-center bg-indigo-700 rounded-lg px-2 py-1 border border-indigo-500">
+                        <i class="fa-solid fa-language mr-1.5 text-indigo-200"></i>
+                        <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-transparent text-sm text-white font-medium outline-none cursor-pointer pr-1">
+                            <option value="en" class="text-slate-900">English</option>
+                            <option value="hi" class="text-slate-900">हिन्दी (Hindi)</option>
+                        </select>
+                    </div>
+
+                    <!-- Navigation Tabs -->
+                    <div class="flex space-x-1">
+                        <button id="btn-how-it-works" onclick="switchTab('how-it-works')" class="nav-btn data-i18n px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition" data-key="navHow">How It Works</button>
+                        <button id="btn-citizen-portal" onclick="switchTab('citizen-portal')" class="nav-btn data-i18n px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition" data-key="navCitizen">Citizen Portal</button>
+                        <button id="btn-admin-portal" onclick="switchTab('admin-portal')" class="nav-btn data-i18n px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition" data-key="navAdmin">Admin Dashboard</button>
+                    </div>
+
+                    <!-- Auth Status Button Trigger -->
+                    <div id="authMenu" class="border-l border-indigo-500 pl-4">
+                        <button id="authTriggerBtn" onclick="handleAuthAction()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 px-3 py-1.5 rounded-md text-xs font-bold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-right-to-bracket"></i> <span id="authBtnText" class="data-i18n" data-key="login">Login</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Jumbotron banner -->
+    <div class="relative bg-slate-900 text-white overflow-hidden shadow-inner">
+        <img src="https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=1600&q=80" alt="Clean City Infrastructure" class="absolute inset-0 w-full h-full object-cover opacity-25">
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center md:text-left z-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 data-i18n" data-key="heroTitle">Your City. Your Voice.</h1>
+            <p class="text-lg md:text-xl max-w-2xl text-slate-300 mb-6 data-i18n" data-key="heroSub">Report municipal breakdowns, follow community updates, and help our city authorities keep neighborhoods functional, clean, and safe.</p>
+            <div class="flex flex-wrap justify-center md:justify-start gap-4">
+                <button onclick="switchTab('citizen-portal')" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-3 rounded-lg shadow-md transition data-i18n" data-key="heroReportBtn">Report an Issue</button>
+                <button onclick="switchTab('how-it-works')" class="bg-white/10 hover:bg-white/20 text-white font-medium px-6 py-3 rounded-lg backdrop-blur transition border border-white/20 data-i18n" data-key="heroLearnBtn">Learn the Process</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CORE WRAPPER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        
+        <!-- SECTION 1: AUTHENTICATION INTERFACE LAYER -->
+        <section id="auth-portal" class="tab-content hidden max-w-md mx-auto">
+            <div class="bg-white p-8 rounded-xl shadow-md border border-slate-200">
+                <!-- Tab headers for Auth Card Toggle -->
+                <div class="flex border-b border-slate-200 mb-6">
+                    <button onclick="toggleAuthMode('login')" id="authTab-login" class="w-1/2 pb-3 text-center font-bold text-indigo-600 border-b-2 border-indigo-600 transition data-i18n" data-key="login">Login</button>
+                    <button onclick="toggleAuthMode('signup')" id="authTab-signup" class="w-1/2 pb-3 text-center font-semibold text-slate-400 hover:text-slate-600 transition data-i18n" data-key="signUp">Sign Up</button>
+                </div>
+
+                <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1 data-i18n" data-key="labelEmail">Email Address</label>
+                        <input type="email" id="authEmail" required class="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:border-indigo-600 placeholder-slate-400" placeholder="name@domain.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1 data-i18n" data-key="labelPassword">Password</label>
+                        <input type="password" id="authPassword" required minlength="4" class="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:border-indigo-600" placeholder="••••••••">
+                    </div>
+                    <div id="signupFields" class="hidden animate-fadeIn">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1 data-i18n" data-key="labelFullName">Full Name</label>
+                        <input type="text" id="authName" class="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:border-indigo-600" placeholder="Sahil Kumar">
+                    </div>
+
+                    <button type="submit" id="authSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition shadow-md mt-2 data-i18n" data-key="login">
+                        Login
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- SECTION 2: HOW IT WORKS HOMEPAGE -->
+        <section id="how-it-works" class="tab-content hidden space-y-12">
+            <div class="text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold text-slate-900 tracking-tight mb-2 data-i18n" data-key="howTitle">How It Generally Works</h2>
+                <p class="text-slate-600 data-i18n" data-key="howSubText">Our cross-department workflow bridges citizens and operators directly.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 text-center">
+                <!-- Step 1 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center">
+                    <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg mb-4"><i class="fa-solid fa-user-plus"></i></div>
+                    <h3 class="font-bold mb-1 text-base data-i18n" data-key="step1Title">1. Register & Login</h3>
+                    <p class="text-xs text-slate-500 data-i18n" data-key="step1Desc">Access your local neighborhood grievance dashboard.</p>
+                </div>
+                <!-- Step 2 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center">
+                    <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg mb-4"><i class="fa-solid fa-list-check"></i></div>
+                    <h3 class="font-bold mb-1 text-base data-i18n" data-key="step2Title">2. Select Category</h3>
+                    <p class="text-xs text-slate-500 data-i18n" data-key="step2Desc">Choose from road hazards, public safety, or cleanups.</p>
+                </div>
+                <!-- Step 3 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center">
+                    <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg mb-4"><i class="fa-solid fa-camera-retro"></i></div>
+                    <h3 class="font-bold mb-1 text-base data-i18n" data-key="step3Title">3. Describe & Photo</h3>
+                    <p class="text-xs text-slate-500 data-i18n" data-key="step3Desc">Add operational context details and live snaps.</p>
+                </div>
+                <!-- Step 4 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center">
+                    <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg mb-4"><i class="fa-solid fa-ticket"></i></div>
+                    <h3 class="font-bold mb-1 text-base data-i18n" data-key="step4Title">4. Receive ID Token</h3>
+                    <p class="text-xs text-slate-500 data-i18n" data-key="step4Desc">Get a tracking reference token generated automatically.</p>
+                </div>
+                <!-- Step 5 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center">
+                    <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg mb-4"><i class="fa-solid fa-route"></i></div>
+                    <h3 class="font-bold mb-1 text-base data-i18n" data-key="step5Title">5. Track Progress</h3>
+                    <p class="text-xs text-slate-500 data-i18n" data-key="step5Desc">Monitor regional department fixes until resolution.</p>
+                </div>
+            </div>
+
+            <div class="pt-8">
+                <h3 class="text-xl font-bold text-slate-900 mb-6 text-center data-i18n" data-key="coreClassification">Core Service Classifications</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="relative rounded-xl overflow-hidden shadow-sm h-28 group cursor-pointer" onclick="openCategoryForm('Potholes')">
+                        <img src="https://images.unsplash.com/photo-1515162305285-0293e4767cc2?auto=format&fit=crop&w=400&q=70" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3"><span class="text-white text-xs font-bold data-i18n" data-key="catPotholes">Potholes & Roads</span></div>
+                    </div>
+                    <div class="relative rounded-xl overflow-hidden shadow-sm h-28 group cursor-pointer" onclick="openCategoryForm('Garbage collection')">
+                        <img src="https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&w=400&q=70" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3"><span class="text-white text-xs font-bold data-i18n" data-key="catGarbage">Garbage Collection</span></div>
+                    </div>
+                    <div class="relative rounded-xl overflow-hidden shadow-sm h-28 group cursor-pointer" onclick="openCategoryForm('Water supply problems')">
+                        <img src="https://images.unsplash.com/photo-1542013936693-8848e57423e1?auto=format&fit=crop&w=400&q=70" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3"><span class="text-white text-xs font-bold data-i18n" data-key="catWater">Water Breakdowns</span></div>
+                    </div>
+                    <div class="relative rounded-xl overflow-hidden shadow-sm h-28 group cursor-pointer" onclick="openCategoryForm('Streetlight faults')">
+                        <img src="https://images.unsplash.com/photo-1509395062183-67c5ad6faff9?auto=format&fit=crop&w=400&q=70" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3"><span class="text-white text-xs font-bold data-i18n" data-key="catStreetlight">Streetlight Faults</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: PROTECTED CITIZEN PORTAL CONTAINER -->
+        <section id="citizen-portal" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <i class="fa-solid fa-pen-to-square text-indigo-600"></i> <span class="data-i18n" data-key="submitGrievanceHeader">Submit New Grievance</span>
+                    </h2>
+                    
+                    <form id="complaintForm" onsubmit="handleFormSubmit(event)" class="space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1 data-i18n" data-key="formLabelName">Citizen Name</label>
+                                <input type="text" id="citizenName" required class="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:border-indigo-600" placeholder="Sahil">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1 data-i18n" data-key="formLabelContact">Contact Reference</label>
+                                <input type="text" id="citizenContact" required class="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:border-indigo-600" placeholder="Mobile or Email">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1 data-i18n" data-key="formLabelCategory">Grievance Category</label>
+                            <select id="complaintCategory" required class="w-full border border-slate-300 rounded-lg p-2.5 bg-white outline-none focus:border-indigo-600">
+                                <option value="" disabled selected class="data-i18n" data-key="formOptPlaceholder">Choose problem classification...</option>
+                                <option value="Potholes">Potholes</option>
+                                <option value="Garbage collection">Garbage collection</option>
+                                <option value="Water leakage">Water leakage</option>
+                                <option value="Water supply problems">Water supply problems</option>
+                                <option value="Drainage and sewer issues">Drainage and sewer issues</option>
+                                <option value="Streetlight faults">Streetlight faults</option>
+                                <option value="Encroachments">Encroachments</option>
+                                <option value="Tree trimming">Tree trimming</option>
+                                <option value="Building complaints">Building complaints</option>
+                                <option value="Pest control">Pest control</option>
+                                <option value="Roads and traffic issues">Roads and traffic issues</option>
+                                <option value="Licensing issues">Licensing issues</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1 data-i18n" data-key="formLabelDesc">Contextual Description</label>
+                            <textarea id="complaintDesc" rows="4" required class="w-full border border-slate-300 rounded-lg p-2.5 outline-none focus:border-indigo-600" placeholder="Provide address breakdown, critical landmarks..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1 data-i18n" data-key="formLabelPhoto">Upload Photo Evidence</label>
+                            <div class="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-lg p-4 text-center cursor-pointer bg-slate-50 relative">
+                                <input type="file" id="fileInput" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(event)">
+                                <div id="upload-prompt">
+                                    <i class="fa-regular fa-image text-2xl text-slate-400 mb-1"></i>
+                                    <p class="text-sm font-medium text-slate-600 data-i18n" data-key="formUploadPrompt">Click to load incident snap file</p>
+                                </div>
+                                <img id="img-preview" class="hidden max-h-36 mx-auto rounded shadow-sm border">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition shadow-md data-i18n" data-key="formSubmitBtn">
+                            Submit Complaint
+                        </button>
+                    </form>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-magnifying-glass text-indigo-600"></i> <span class="data-i18n" data-key="trackHeader">Track Status Online</span>
+                        </h3>
+                        <div class="flex gap-2">
+                            <input type="text" id="trackInput" class="flex-1 border border-slate-300 rounded-lg p-2 outline-none text-sm" placeholder="Enter ID (e.g., CC-1001)">
+                            <button onclick="trackComplaint()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 rounded-lg text-sm transition data-i18n" data-key="trackBtn">Track</button>
+                        </div>
+                        <div id="trackResult" class="mt-4 hidden p-3 rounded-lg text-sm"></div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-900 mb-4 data-i18n" data-key="logsHeader">Your Logs History</h3>
+                        <div class="space-y-3" id="citizenHistoryList"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 4: PROTECTED ADMIN DASHBOARD -->
+        <section id="admin-portal" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-indigo-600"></i> <span class="data-i18n" data-key="adminHeader">Central Operations Dashboard</span>
+                        </h2>
+                        <p class="text-sm text-slate-500 data-i18n" data-key="adminSub">Secure municipal back-office supervisor access parameters</p>
+                    </div>
+                    <button onclick="alert('Report exported successfully')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-2">
+                        <i class="fa-solid fa-file-export"></i> <span class="data-i18n" data-key="adminExport">Generate System Reports</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider data-i18n" data-key="statTotalText">Total Handled</p>
+                        <p class="text-3xl font-extrabold text-slate-900 mt-1" id="statTotal">0</p>
+                    </div>
+                    <div class="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                        <p class="text-xs font-bold text-amber-700 uppercase tracking-wider data-i18n" data-key="statPendingText">Pending Review</p>
+                        <p class="text-3xl font-extrabold text-amber-900 mt-1" id="statPending">0</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                        <p class="text-xs font-bold text-blue-700 uppercase tracking-wider data-i18n" data-key="statAssignedText">Assigned</p>
+                        <p class="text-3xl font-extrabold text-blue-900 mt-1" id="statAssigned">0</p>
+                    </div>
+                    <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                        <p class="text-xs font-bold text-emerald-700 uppercase tracking-wider data-i18n" data-key="statClosedText">Closed Cases</p>
+                        <p class="text-3xl font-extrabold text-emerald-900 mt-1" id="statResolved">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+                    <h3 class="font-bold text-slate-900 data-i18n" data-key="queueHeader">Global Registry Queue Management</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-400 uppercase text-xs font-bold tracking-wider bg-slate-50/50">
+                                <th class="px-6 py-3 data-i18n" data-key="thImg">Incident Asset Image</th>
+                                <th class="px-6 py-3 data-i18n" data-key="thCitizen">ID / Citizen</th>
+                                <th class="px-6 py-3 data-i18n" data-key="thCategory">Problem Category</th>
+                                <th class="px-6 py-3 data-i18n" data-key="thDesc">Description Context</th>
+                                <th class="px-6 py-3 data-i18n" data-key="thRouting">Department Routing</th>
+                                <th class="px-6 py-3 data-i18n" data-key="thStatus">Current Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Dictionary Matrix for Multi-language Translation Engine
+        const translations = {
+            en: {
+                navHow: "How It Works", navCitizen: "Citizen Portal", navAdmin: "Admin Dashboard",
+                login: "Login", signUp: "Sign Up", logout: "Logout",
+                heroTitle: "Your City. Your Voice.", heroSub: "Report municipal breakdowns, follow community updates, and help our city authorities keep neighborhoods functional, clean, and safe.",
+                heroReportBtn: "Report an Issue", heroLearnBtn: "Learn the Process",
+                labelEmail: "Email Address", labelPassword: "Password", labelFullName: "Full Name",
+                howTitle: "How It Generally Works", howSubText: "Our cross-department workflow bridges citizens and operators directly.",
+                step1Title: "1. Register & Login", step1Desc: "Access your local neighborhood grievance dashboard.",
+                step2Title: "2. Select Category", step2Desc: "Choose from road hazards, public safety, or cleanups.",
+                step3Title: "3. Describe & Photo", step3Desc: "Add operational context details and live snaps.",
+                step4Title: "4. Receive ID Token", step4Desc: "Get a tracking reference token generated automatically.",
+                step5Title: "5. Track Progress", step5Desc: "Monitor regional department fixes until resolution.",
+                coreClassification: "Core Service Classifications",
+                catPotholes: "Potholes & Roads", catGarbage: "Garbage Collection", catWater: "Water Breakdowns", catStreetlight: "Streetlight Faults",
+                submitGrievanceHeader: "Submit New Grievance", formLabelName: "Citizen Name", formLabelContact: "Contact Reference",
+                formLabelCategory: "Grievance Category", formOptPlaceholder: "Choose problem classification...",
+                formLabelDesc: "Contextual Description", formLabelPhoto: "Upload Photo Evidence", formUploadPrompt: "Click to load incident snap file",
+                formSubmitBtn: "Submit Complaint", trackHeader: "Track Status Online", trackBtn: "Track", logsHeader: "Your Logs History",
+                adminHeader: "Central Operations Dashboard", adminSub: "Secure municipal back-office supervisor access parameters",
+                adminExport: "Generate System Reports", statTotalText: "Total Handled", statPendingText: "Pending Review",
+                statAssignedText: "Assigned", statClosedText: "Closed Cases", queueHeader: "Global Registry Queue Management",
+                thImg: "Incident Asset Image", thCitizen: "ID / Citizen", thCategory: "Problem Category", thDesc: "Description Context",
+                thRouting: "Department Routing", thStatus: "Current Status"
+            },
+            hi: {
+                navHow: "यह कैसे काम करता है", navCitizen: "नागरिक पोर्टल", navAdmin: "एडमिन डैशबोर्ड",
+                login: "लॉगिन करें", signUp: "साइन अप", logout: "लॉगआउट",
+                heroTitle: "आपका शहर। आपकी आवाज़।", heroSub: "नगर निगम की समस्याओं की रिपोर्ट करें, सामुदायिक अपडेट का पालन करें, और नागरिक व्यवस्था बनाए रखने में अधिकारियों की मदद करें।",
+                heroReportBtn: "समस्या की रिपोर्ट करें", heroLearnBtn: "प्रक्रिया जानें",
+                labelEmail: "ईमेल पता", labelPassword: "पासवर्ड", labelFullName: "पूरा नाम",
+                howTitle: "यह सामान्य रूप से कैसे काम करता है", howSubText: "हमारा अंतर-विभागीय वर्कफ़्लो नागरिकों और ऑपरेटरों को सीधे जोड़ता है।",
+                step1Title: "1. पंजीकरण और लॉगिन", step1Desc: "अपने स्थानीय क्षेत्र के शिकायत डैशबोर्ड तक पहुंचें।",
+                step2Title: "2. श्रेणी चुनें", step2Desc: "सड़क के खतरों, सार्वजनिक सुरक्षा या सफाई व्यवस्था में से चुनें।",
+                step3Title: "3. विवरण और फोटो", step3Desc: "परिचालन संदर्भ विवरण और लाइव तस्वीरें जोड़ें।",
+                step4Title: "4. आईडी टोकन प्राप्त करें", step4Desc: "स्वचालित रूप से उत्पन्न ट्रैकिंग संदर्भ टोकन प्राप्त करें।",
+                step5Title: "5. प्रगति को ट्रैक करें", step5Desc: "समाधान होने तक क्षेत्रीय विभाग के सुधारों की निगरानी करें।",
+                coreClassification: "मुख्य सेवा वर्गीकरण",
+                catPotholes: "गड्ढे और सड़कें", catGarbage: "कचरा संग्रहण", catWater: "पानी की समस्या", catStreetlight: "स्ट्रीटलाइट दोष",
+                submitGrievanceHeader: "नई शिकायत दर्ज करें", formLabelName: "नागरिक का नाम", formLabelContact: "संपर्क संदर्भ",
+                formLabelCategory: "शिकायत की श्रेणी", formOptPlaceholder: "समस्या का वर्गीकरण चुनें...",
+                formLabelDesc: "प्रासंगिक विवरण", formLabelPhoto: "फोटो साक्ष्य अपलोड करें", formUploadPrompt: "इंसिडेंट स्नैप फ़ाइल लोड करने के लिए क्लिक करें",
+                formSubmitBtn: "शिकायत सबमिट करें", trackHeader: "ऑनलाइन स्थिति ट्रैक करें", trackBtn: "ट्रैक करें", logsHeader: "आपका लॉग इतिहास",
+                adminHeader: "केंद्रीय संचालन डैशबोर्ड", adminSub: "सुरक्षित नगर निगम बैक-ऑफिस पर्यवेक्षक पहुंच पैरामीटर",
+                adminExport: "सिस्टम रिपोर्ट जेनरेट करें", statTotalText: "कुल संभाले गए", statPendingText: "समीक्षा लंबित",
+                statAssignedText: "सौंपे गए मामले", statClosedText: "बंद किए गए मामले", queueHeader: "वैश्विक रजिस्ट्री कतार प्रबंधन",
+                thImg: "घटना संपत्ति छवि", thCitizen: "आईडी / नागरिक", thCategory: "समस्या श्रेणी", thDesc: "विवरण संदर्भ",
+                thRouting: "विभाग रूटिंग", thStatus: "वर्तमान स्थिति"
+            }
+        };
+
+        let currentLang = 'en';
+
+        // Dynamic State Storage
+        let users = [{ email: "admin@city.gov", password: "admin", name: "Administrator" }];
+        let currentUser = null; 
+        let authMode = 'login'; // 'login' or 'signup'
+        let pendingTargetTab = null;
+
+        let complaints = [
+            {
+                id: "CC-1001",
+                name: "Sahil",
+                contact: "9876543210",
+                category: "Potholes",
+                desc: "Severe deep tarmac erosion right across from the regional market main checkpoint plaza.",
+                dept: "Public Works Department",
+                status: "Pending Review",
+                photo: "https://images.unsplash.com/photo-1515162305285-0293e4767cc2?auto=format&fit=crop&w=150&q=70"
+            },
+            {
+                id: "CC-1002",
+                name: "Aarav",
+                contact: "aarav@email.com",
+                category: "Garbage collection",
+                desc: "Heaps of commercial organic waste sitting unattended for 48 hours at street intersections.",
+                dept: "Sanitation Division",
+                status: "Assigned",
+                photo: "https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&w=150&q=70"
+            }
+        ];
+
+        let selectedPhotoData = "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=150&q=70";
+
+        // Translation Engine Routine
+        function changeLanguage(langCode) {
+            currentLang = langCode;
+            document.querySelectorAll('.data-i18n').forEach(element => {
+                const key = element.getAttribute('data-key');
+                if (translations[currentLang][key]) {
+                    if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                        element.placeholder = translations[currentLang][key];
+                    } else {
+                        element.innerText = translations[currentLang][key];
+                    }
+                }
+            });
+            updateAuthBarUI();
+        }
+
+        // Authentication Tab View Toggle (Inside Auth Screen Container)
+        function toggleAuthMode(mode) {
+            authMode = mode;
+            const loginTab = document.getElementById('authTab-login');
+            const signupTab = document.getElementById('authTab-signup');
+            const signupFields = document.getElementById('signupFields');
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const nameInput = document.getElementById('authName');
+
+            if(mode === 'signup') {
+                loginTab.className = "w-1/2 pb-3 text-center font-semibold text-slate-400 hover:text-slate-600 transition border-b border-slate-200";
+                signupTab.className = "w-1/2 pb-3 text-center font-bold text-indigo-600 border-b-2 border-indigo-600 transition";
+                signupFields.classList.remove('hidden');
+                nameInput.required = true;
+                submitBtn.innerText = translations[currentLang]['signUp'];
+            } else {
+                signupTab.className = "w-1/2 pb-3 text-center font-semibold text-slate-400 hover:text-slate-600 transition border-b border-slate-200";
+                loginTab.className = "w-1/2 pb-3 text-center font-bold text-indigo-600 border-b-2 border-indigo-600 transition";
+                signupFields.classList.add('hidden');
+                nameInput.required = false;
+                submitBtn.innerText = translations[currentLang]['login'];
+            }
+        }
+
+        // Authentication Submission Handler
+        function handleAuthSubmit(event) {
+            event.preventDefault();
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+            const name = document.getElementById('authName').value.trim();
+
+            if (authMode === 'signup') {
+                if (users.find(u => u.email === email)) {
+                    alert(currentLang === 'en' ? "User identity email already registered." : "यह ईमेल आईडी पहले से पंजीकृत है।");
+                    return;
+                }
+                const newUser = { email, password, name: name || "Citizen" };
+                users.push(newUser);
+                currentUser = newUser;
+                alert(currentLang === 'en' ? "Account creation completely successful!" : "खाता सफलतापूर्वक बन गया है!");
+            } else {
+                const match = users.find(u => u.email === email && u.password === password);
+                if (!match) {
+                    alert(currentLang === 'en' ? "Invalid structured password parameter credentials." : "अमान्य क्रेडेंशियल, कृपया पुनः प्रयास करें।");
+                    return;
+                }
+                currentUser = match;
+            }
+
+            document.getElementById('authForm').reset();
+            updateAuthBarUI();
+            
+            // Redirect user to the page they originally intended to visit
+            if (pendingTargetTab) {
+                switchTab(pendingTargetTab);
+                pendingTargetTab = null;
+            } else {
+                switchTab('how-it-works');
+            }
+        }
+
+        // Top Navigation Auth Controller Logic
+        function handleAuthAction() {
+            if (currentUser) {
+                currentUser = null;
+                updateAuthBarUI();
+                switchTab('how-it-works');
+                alert(currentLang === 'en' ? "Logged out securely." : "सफलतापूर्वक लॉगआउट किया गया।");
+            } else {
+                pendingTargetTab = null;
+                switchTab('auth-portal');
+            }
+        }
+
+        function updateAuthBarUI() {
+            const btnText = document.getElementById('authBtnText');
+            const icon = document.querySelector('#authTriggerBtn i');
+            
+            if (currentUser) {
+                btnText.innerText = `${translations[currentLang]['logout']} (${currentUser.name})`;
+                icon.className = "fa-solid fa-right-from-bracket";
+            } else {
+                btnText.innerText = translations[currentLang]['login'];
+                icon.className = "fa-solid fa-right-to-bracket";
+            }
+        }
+
+        // Navigation Interceptor & Controller
+        function switchTab(tabId) {
+            // Guard Rule Interception logic: Protect Citizen Portal and Admin Dashboard views
+            if ((tabId === 'citizen-portal' || tabId === 'admin-portal') && !currentUser) {
+                pendingTargetTab = tabId;
+                switchTab('auth-portal');
+                toggleAuthMode('login');
+                alert(currentLang === 'en' ? "Identity verification required. Please login first." : "पहुंच के लिए पहचान सत्यापन आवश्यक है। कृपया पहले लॉगिन करें।");
+                return;
+            }
+
+            document.querySelectorAll('.tab-content').forEach(section => section.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('bg-indigo-800', 'text-white'));
+            
+            const targetedView = document.getElementById(tabId);
+            if(targetedView) targetedView.classList.remove('hidden');
+            
+            const targetBtn = document.getElementById(`btn-${tabId}`);
+            if(targetBtn) targetBtn.classList.add('bg-indigo-800', 'text-white');
+        }
+
+        function openCategoryForm(catName) {
+            switchTab('citizen-portal');
+            const catSelector = document.getElementById('complaintCategory');
+            if (catSelector && currentUser) catSelector.value = catName;
+        }
+
+        function previewImage(event) {
+            const prompt = document.getElementById('upload-prompt');
+            const img = document.getElementById('img-preview');
+            if(event.target.files && event.target.files[0]) {
+                prompt.classList.add('hidden');
+                img.classList.remove('hidden');
+                const fileUrl = URL.createObjectURL(event.target.files[0]);
+                img.src = fileUrl;
+                selectedPhotoData = fileUrl;
+            }
+        }
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            const newId = `CC-${Math.floor(1000 + Math.random() * 9000)}`;
+            const newRecord = {
+                id: newId,
+                name: document.getElementById('citizenName').value,
+                contact: document.getElementById('citizenContact').value,
+                category: document.getElementById('complaintCategory').value,
+                desc: document.getElementById('complaintDesc').value,
+                dept: "Unassigned",
+                status: "Pending Review",
+                photo: selectedPhotoData
+            };
+
+            complaints.push(newRecord);
+            
+            document.getElementById('complaintForm').reset();
+            document.getElementById('upload-prompt').classList.remove('hidden');
+            document.getElementById('img-preview').classList.add('hidden');
+            selectedPhotoData = "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=150&q=70";
+            
+            alert(`Success! Complaint logged.\nYour unique reference ID: ${newId}`);
+            
+            refreshUI();
+            switchTab('admin-portal');
+        }
+
+        function trackComplaint() {
+            const inputVal = document.getElementById('trackInput').value.trim();
+            const resultBox = document.getElementById('trackResult');
+            
+            if(!inputVal) return;
+            
+            const match = complaints.find(c => c.id.toLowerCase() === inputVal.toLowerCase());
+            resultBox.classList.remove('hidden', 'bg-red-50', 'text-red-800', 'bg-indigo-50', 'text-indigo-900');
+            
+            if(match) {
+                resultBox.classList.add('bg-indigo-50', 'text-indigo-900');
+                resultBox.innerHTML = `
+                    <div class="flex gap-3 items-center">
+                        <img src="${match.photo}" class="w-12 h-12 object-cover rounded shadow-inner border bg-slate-200">
+                        <div>
+                            <div class="font-bold">ID Found: ${match.id}</div>
+                            <div class="text-xs text-slate-600">Category: ${match.category}</div>
+                            <div class="text-sm mt-1 font-semibold">Status: ${match.status}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                resultBox.classList.add('bg-red-50', 'text-red-800');
+                resultBox.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Invalid Token ID. Match missing from server.`;
+            }
+        }
+
+        function updateDepartment(id, val) {
+            const item = complaints.find(c => c.id === id);
+            if(item) item.dept = val;
+            refreshUI();
+        }
+
+        function updateStatus(id, val) {
+            const item = complaints.find(c => c.id === id);
+            if(item) item.status = val;
+            refreshUI();
+        }
+
+        function refreshUI() {
+            document.getElementById('statTotal').innerText = complaints.length;
+            document.getElementById('statPending').innerText = complaints.filter(c => c.status === "Pending Review").length;
+            document.getElementById('statAssigned').innerText = complaints.filter(c => c.status === "Assigned").length;
+            document.getElementById('statResolved').innerText = complaints.filter(c => c.status === "Resolved").length;
+
+            const citizenHistoryList = document.getElementById('citizenHistoryList');
+            citizenHistoryList.innerHTML = "";
+            
+            complaints.forEach(c => {
+                let badgeClass = "bg-amber-100 text-amber-800";
+                if(c.status === "Assigned") badgeClass = "bg-blue-100 text-blue-800";
+                if(c.status === "Resolved") badgeClass = "bg-emerald-100 text-emerald-800";
+
+                citizenHistoryList.innerHTML += `
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-100 flex gap-3 items-center">
+                        <img src="${c.photo}" class="w-10 h-10 rounded object-cover shadow-sm bg-slate-200">
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-sm text-slate-800 truncate">${c.category}</p>
+                            <p class="text-xs text-slate-400">ID: ${c.id}</p>
+                        </div>
+                        <span class="text-xs px-2 py-0.5 rounded font-medium ${badgeClass}">${c.status}</span>
+                    </div>
+                `;
+            });
+
+            const tableBody = document.getElementById('adminTableBody');
+            tableBody.innerHTML = "";
+
+            complaints.forEach(c => {
+                tableBody.innerHTML += `
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="px-6 py-3 whitespace-nowrap">
+                            <img src="${c.photo}" class="w-14 h-10 object-cover rounded shadow-sm border bg-slate-200">
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap">
+                            <div class="font-bold text-slate-900">${c.id}</div>
+                            <div class="text-xs text-slate-500">${c.name} (${c.contact})</div>
+                        </td>
+                        <td class="px-6 py-3 font-semibold text-slate-700">${c.category}</td>
+                        <td class="px-6 py-3 max-w-xs truncate text-slate-500" title="${c.desc}">${c.desc}</td>
+                        <td class="px-6 py-3">
+                            <select onchange="updateDepartment('${c.id}', this.value)" class="bg-white border border-slate-300 rounded p-1 text-xs outline-none focus:border-indigo-600">
+                                <option value="Unassigned" ${c.dept === 'Unassigned' ? 'selected':''}>Unassigned</option>
+                                <option value="Public Works Department" ${c.dept === 'Public Works Department' ? 'selected':''}>Public Works Dept</option>
+                                <option value="Sanitation Division" ${c.dept === 'Sanitation Division' ? 'selected':''}>Sanitation Div</option>
+                                <option value="Water Operations Dept" ${c.dept === 'Water Operations Dept' ? 'selected':''}>Water Operations</option>
+                            </select>
+                        </td>
+                        <td class="px-6 py-3">
+                            <select onchange="updateStatus('${c.id}', this.value)" class="bg-white border border-slate-300 rounded p-1 text-xs font-semibold outline-none focus:border-indigo-600">
+                                <option value="Pending Review" class="text-amber-600" ${c.status === 'Pending Review' ? 'selected':''}>Pending Review</option>
+                                <option value="Assigned" class="text-blue-600" ${c.status === 'Assigned' ? 'selected':''}>Assigned</option>
+                                <option value="Resolved" class="text-emerald-600" ${c.status === 'Resolved' ? 'selected':''}>Resolved</option>
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        window.onload = function() {
+            switchTab('how-it-works');
+            changeLanguage('en');
+            refreshUI();
+        }
+    </script>
+</body>
+</html>
